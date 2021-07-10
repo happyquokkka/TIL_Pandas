@@ -1,0 +1,1385 @@
+```python
+# 설정변경코드
+# 변수 명이 두번 이상 출력되어도 모두 콘솔에서 보여줄 것
+from IPython.core.interactiveshell import InteractiveShell
+InteractiveShell.ast_node_interactivity="all" 
+# 마지막것만 출력되게 하려면 'last_expr'로 변경해서 입력
+```
+
+```python
+# 모듈 import
+import numpy as np
+import pandas as pdp
+```
+
+
+
+## 데이터 프레임 인덱서 : loc, iloc
+
+- Pandas는 numpy행렬과 같이 쉼표를 사용한 (행 인덱스, 열 인덱스) 형식의 2차원 인덱싱을 지원
+    - 특별한 인덱서(indexer) 속성을 제공
+* __loc : 라벨값 기반의 2차원 인덱싱__
+* __iloc : 순서를 나타내는 정수 기반의 2차원 인덱싱__
+
+
+
+#### 행과 열을 동시에 인덱싱 하는 구조는 기본 자료구조 인덱스와 차이가 있음
+- df['열']
+
+- df[:'행'] 슬라이싱이 반드시 필요
+
+- `df['열'][:'행']`
+
+  
+
+
+
+### ☆★ 데이터 프레임에서 인덱서 사용 ★☆
+
+#### loc, iloc 속성을 사용하는 인덱싱
+#### pandas 패키지는 [행번호][열번호] 인덱싱 불가
+- iloc 속성 사용하면 가능
+    - iloc[행번호, 열번호] - 가능
+    - loc[행제목, 열제목] -가능
+
+
+
+### loc 인덱서 : 행 우선 인덱서
+
+`df.loc[행 인덱스 값] : 행 우선 인덱싱 진행`
+
+`df.loc[행 인덱스 값, 열 인덱스 값]`
+
+
+
+#### 인덱스 값에 들어갈 수 있는 데이터 타입
+
+1. 인덱스 데이터(index name, column name)
+2. 인덱스 슬라이스
+3. 같은 행 인덱스를 갖는 불리언 시리즈(행 인덱싱인 경우)
+    - 조건식을 인덱스로 사용 가능하다는 의미
+4. 1,2,3번 값을 반환하는 함수
+
+
+```python
+#예제 df 생성
+#10-21 범위의 숫자를 생성 후 3행 4열로 배치
+df=pd.DataFrame(np.arange(10,22).reshape(3,4),
+               index = ['a','b','c'],
+               columns = ["A","B","C","D"])
+df
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# loc 인덱서 사용
+# 인덱싱 값을 하나만 받는 경우 df.loc[행 인덱스 값] -> 하나만 주면 행으로 처리함
+print(type(df.loc['a']))
+df.loc['a'] # a 행의 모든 열을 반환 - 시리즈로 반환
+```
+
+    <class 'pandas.core.series.Series'>
+
+    A    10
+    B    11
+    C    12
+    D    13
+    Name: a, dtype: int32
+
+
+
+##### 주의!!!  인덱서에서는 열 단독으로 인덱싱은 불가함
+​	_cf) 기본인덱스는 열 위주 인덱스_
+
+`df.loc['A'] -> A열을 반환해 달라는 의미로 사용했는데 행 위주 인덱서이기 때문에 에러 발생`
+
+
+```python
+# 인덱스 값으로 슬라이싱 사용
+df.loc['b':'c'] # b행부터 c행까지 출력
+df["b":"c"]  # 위 결과와 동일한 결과 출력
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# 인덱스 데이터를 리스트로 사용 가능 - 여러 행을 추출하는 것이 목적
+# 따라서 데이터프레임 형태로밖에 반환 안 됨
+df.loc[['a']]
+df.loc[['a','c']] # a행과 c행 추출
+df.loc[['c','b','a']] # c, b, a 행 추출(순서도 c, b, a의 순서)
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+#### **boolean selection으로 row 선택하기**
+
+
+```python
+df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# 인덱서의 인덱스 값으로 조건식을 줄 수 있음
+df.A > 15  # 조건식은 시리즈로 반환됨 -> True/False 판정 가능
+df.loc[df.A > 15]  # A열 내 값이 15보다 큰 행 반환
+```
+
+
+
+
+```python
+a    False
+b    False
+c     True
+Name: A, dtype: bool
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+
+```python
+# 인덱스 값을 반환하는 함수의 결과값을 사용
+# 테스트 함수 작성
+def sel_row(df1) : # 파라미터 명: df1
+    return df1.A > 15
+```
+
+
+```python
+sel_row(df) # 인수: df (sel_row 함수에 넘겨주는 값)
+df.loc[sel_row(df)]
+```
+
+
+
+
+    a    False
+    b    False
+    c     True
+    Name: A, dtype: bool
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+
+```python
+#예제 df 생성
+df2 = pd.DataFrame(np.arange(10,26).reshape(4,4),
+                  columns=['a','b','c','d'])
+df2 #행 인덱스 지정하지 않아서 0부터 1씩 증가되는 정수 인덱스 자동 생성
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>a</th>
+      <th>b</th>
+      <th>c</th>
+      <th>d</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>22</td>
+      <td>23</td>
+      <td>24</td>
+      <td>25</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+df2.loc[1:2] 
+# 라벨 인덱스를 이용한 슬라이싱이기 때문에(loc 인덱서 사용)
+# 초기값 : 끝값 적용 - 1번 인덱스부터 2번 인덱스까지라는 의미 갖게 됨
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>a</th>
+      <th>b</th>
+      <th>c</th>
+      <th>d</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+
+```python
+#### 주의!!!! 기본 인덱스를 사용할 경우
+df2[1:2]  # 위치 인덱싱이기 때문에 초기위치:끝위치+1 로 처리됨
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>a</th>
+      <th>b</th>
+      <th>c</th>
+      <th>d</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+#### loc 인덱서 사용해서 요소 값 접근
+- 인덱스 값으로 행과 열을 모두 받는 경우
+- 문법 : _df.loc[행 인덱스, 열 인덱스]_
+- __값(라벨)인덱스 사용__
+
+
+```python
+# 사용 예제 df 확인
+df
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# df의 원소값 접근
+# a행의 A 열 원소를 출력
+df.loc['a','A']
+df['A']['a']
+# 기본 인덱스를 이용할 때는 열 인덱스, 행 인덱스의 순서로 접근
+```
+
+
+    10
+
+
+    10
+
+
+
+
+
+#### loc 인덱서를 사용한 원소값 변경
+
+
+```python
+# a행의 A열 원소 값을 50으로 변경하시오
+df.loc['a','A'] = 50
+# df['A']['a'] = 50 -> 기본인덱스를 이용(체인 인덱싱이기 때문에 연산을 두 번 진행하는 것)
+df
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+### loc를 이용한 indexing 정리
+
+
+```python
+# a 행의 모든 열
+df.loc['a'] # 시리즈로 반환됨
+df.loc[['a']] # 데이터프레임으로 반환됨
+df.loc['a',:] # a행의 모든 열 출력 - 시리즈로 반환
+```
+
+
+    A    50
+    B    11
+    C    12
+    D    13
+    Name: a, dtype: int32
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+    A    50
+    B    11
+    C    12
+    D    13
+    Name: a, dtype: int32
+
+
+
+
+```python
+# a 행의 B,C 열
+df.loc['a','B':'C']  # 행 접근이 시리즈 -> 최종 반환이 시리즈
+df.loc[['a'],'B':'C'] # 행 접근이 데이터프레임 -> 최종 반환이 데이터프레임
+```
+
+
+    B    11
+    C    12
+    Name: a, dtype: int32
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>11</td>
+      <td>12</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# df의 a, b 행의 B, D열을 데이터프레임으로 추출
+df
+df.loc['a':'b'] # a:b 행의 모든 열이 df 형태로 반환
+# 이유: 한 행이면 시리즈로 반환이 가능하나, 두 행은 2차원의 데이터프레임으로 반환되는 것임
+
+df.loc[['a','b']] # a:b 행의 모든 열이 df 형태로 반환
+df.loc[['a','b'],'B'] # a,b 행의 B열을 시리즈로 반환
+df.loc[['a','b'],['B']] # a,b 행의 B열을 데이터프레임으로 반환
+df.loc[['a','b'],['B', 'D']] # a,b 행의 B, D열을 데이터프레임으로 반환
+
+df.loc[['a','b'],'B':'D'] # a,b 행의 B, C, D열을 데이터프레임으로 반환
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+    a    11
+    b    15
+    Name: B, dtype: int32
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>11</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>15</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>B</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>11</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>15</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+### iloc 인덱서(위치 인덱스)
+- 라벨(name)이 아닌 위치를 나타내는 정수 인덱스만 받는다.
+- 위치 정수값은 0부터 시작
+- 데이터프레임.iloc[행,열]
+
+
+```python
+# 사용 예제 df 확인
+df
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+df.iloc[0,1] # 0행의 1열 -> 위치값은 0부터 시작
+```
+
+
+    11
+
+
+
+
+```python
+# 슬라이싱
+df.iloc[0:2] # 0행부터 1행
+df.iloc[0:1] # 0행 추출 - 데이터프레임으로 추출
+df.iloc[0] # 0행 추출 - 시리즈로 추출
+df.iloc[[0]] # 0행 추출 - 데이터프레임으로 추출
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+    A    50
+    B    11
+    C    12
+    D    13
+    Name: a, dtype: int32
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+
+```python
+df.iloc[0:2,0] # 시리즈로 반환
+df.iloc[0:2,0:1] # 데이터프레임으로 반환 -> 행/열 값 모두 슬라이싱을 사용하면 df 반환
+```
+
+
+    a    50
+    b    14
+    Name: A, dtype: int32
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# 위치 인덱싱이기 때문에 -(마이너스)위치도 사용 가능함
+# df.iloc[0:1, -2:]
+df
+df.iloc[0,-2] # 첫번째 행 원소의 뒤에서 두 번재 원소
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>50</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>b</th>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>c</th>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+    12
+
+
+
+
+
+
+```python
+df.iloc[0:1,-2:]
+# 0행의 뒤에서 두 번째 열부터 끝 열까지 -> df.iloc[슬라이싱,슬라이싱]
+# 일단 슬라이싱을 이용하면 데이터프레임으로 반환!
+```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>C</th>
+      <th>D</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>a</th>
+      <td>12</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+- iloc[위치,위치] -> 원소값 반환
+- iloc[위치:위치,위치:위치]-> 슬라이싱 사용 / 원소 반환: df 반환
+- iloc[위치,위치:위치]-> 원소반환 :시리즈 반환 (행이 시리즈라서)
+- iloc[위치:위치,위치]-> 원소반환 : 시리즈 반환 (열이 시리즈라서)
+
+
+- __보통은 위치 인덱스보다는 loc 인덱서를 사용하여 라벨 인덱싱을 주로 함__
